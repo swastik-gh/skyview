@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#000000">
+    
+    <title>Skyview | Minimalist Libre Weather</title>
+    <meta name="description" content="Skyview: A high-performance, privacy-focused Libre weather application by Swastik Chatterjee. Licensed under AGPLv3.">
+    <meta name="keywords" content="Skyview, Weather, Libre, Open Source Weather, Swastik Chatterjee, AGPLv3, FSF">
+    
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --glass: rgba(255, 255, 255, 0.08);
+            --glass-thick: rgba(255, 255, 255, 0.12);
+            --border: rgba(255, 255, 255, 0.15);
+        }
+
+        body, html {
+            margin: 0; padding: 0; min-height: 100vh;
+            font-family: 'Inter', -apple-system, system-ui, sans-serif;
+            color: white; background-color: #000;
+            background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.8)), 
+                        url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1920&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+
+        .container { max-width: 420px; margin: 0 auto; padding: 20px; box-sizing: border-box; }
+
+        /* Brand & Logo */
+        .brand { display: flex; flex-direction: column; align-items: center; margin: 20px 0 30px 0; }
+        .logo-svg { width: 50px; height: 50px; margin-bottom: 10px; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.3)); }
+        .brand-name { font-size: 1.2rem; font-weight: 800; letter-spacing: 4px; text-transform: uppercase; opacity: 0.9; }
+
+        /* Navigation */
+        .header { display: flex; gap: 10px; margin-bottom: 20px; }
+        .search-bar { 
+            background: var(--glass); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+            border: 1px solid var(--border); border-radius: 24px; padding: 12px 20px; flex-grow: 1; 
+            display: flex; align-items: center; transition: all 0.3s ease;
+        }
+        #cityInput { background: transparent; border: none; color: white; width: 100%; outline: none; margin-left: 12px; font-size: 16px; }
+
+        .btn-action { 
+            background: var(--glass); border: 1px solid var(--border); border-radius: 20px; 
+            color: white; width: 52px; height: 52px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+            backdrop-filter: blur(25px); transition: all 0.2s ease;
+        }
+        .btn-action:active { transform: scale(0.92); }
+
+        /* Hero */
+        .hero { text-align: center; padding: 40px 0; animation: fadeIn 0.8s ease-out; }
+        #cityName { font-weight: 600; letter-spacing: 2px; text-transform: uppercase; font-size: 0.75rem; opacity: 0.5; margin: 0; }
+        #temp { font-size: 8.5rem; font-weight: 200; margin: 10px 0; letter-spacing: -8px; line-height: 0.9; text-indent: -8px; }
+        #desc { font-size: 1.4rem; font-weight: 300; opacity: 0.95; }
+
+        /* Glass Cards */
+        .glass-card { 
+            background: var(--glass); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
+            border: 1px solid var(--border); border-radius: 30px; padding: 24px; margin-bottom: 16px;
+        }
+
+        .row { display: flex; justify-content: space-around; text-align: center; }
+        .stat { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+        .stat span { font-size: 1.1rem; font-weight: 500; }
+        .stat label { font-size: 0.6rem; opacity: 0.4; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 700; }
+
+        /* About Section */
+        .about-section { margin-top: 40px; padding: 25px; text-align: center; font-size: 0.85rem; }
+        .about-section h3 { font-size: 0.7rem; letter-spacing: 2px; text-transform: uppercase; opacity: 0.4; margin-bottom: 15px; }
+        .about-section p { line-height: 1.6; opacity: 0.7; margin: 5px 0; }
+        .about-link { color: #fff; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,0.3); padding-bottom: 2px; transition: opacity 0.2s; }
+        .about-link:hover { opacity: 0.6; }
+
+        /* Loader */
+        .spinner { width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.05); border-left-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 100px auto; }
+        
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .hidden { display: none !important; }
+        
+        footer { text-align: center; font-size: 0.65rem; opacity: 0.25; padding: 30px; letter-spacing: 3px; font-weight: 700; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="brand">
+            <svg class="logo-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="50" r="48" stroke="white" stroke-width="2" stroke-dasharray="4 4"/>
+                <path d="M50 20V30M50 70V80M20 50H30M70 50H80" stroke="white" stroke-width="3" stroke-linecap="round"/>
+                <circle cx="50" cy="50" r="12" fill="white"/>
+                <path d="M35 35L40 40M60 60L65 65M65 35L60 40M40 60L35 65" stroke="white" stroke-width="3" stroke-linecap="round"/>
+            </svg>
+            <span class="brand-name">Skyview</span>
+        </div>
+
+        <div class="header">
+            <div class="search-bar">
+                <i data-lucide="search" size="18"></i>
+                <input type="text" id="cityInput" placeholder="Search City..." autocomplete="off">
+            </div>
+            <button class="btn-action" id="unitToggle">°F</button>
+            <button class="btn-action" id="refreshBtn"><i data-lucide="refresh-cw" size="20"></i></button>
+        </div>
+
+        <div id="loader" class="spinner hidden"></div>
+
+        <div id="content">
+            <section class="hero">
+                <h2 id="cityName">INITIALIZING...</h2>
+                <h1 id="temp">--</h1>
+                <p id="desc">--</p>
+            </section>
+
+            <div class="glass-card row">
+                <div class="stat"><i data-lucide="wind" size="18"></i><span id="wind">--</span><label>Wind</label></div>
+                <div class="stat"><i data-lucide="droplets" size="18"></i><span id="hum">--</span><label>Humidity</label></div>
+                <div class="stat"><i data-lucide="gauge" size="18"></i><span id="pres">--</span><label>Pressure</label></div>
+            </div>
+
+            <div class="glass-card">
+                <p style="text-align: center; font-size: 0.6rem; opacity: 0.4; margin-bottom: 20px; letter-spacing: 2px; font-weight: 800;">AIR QUALITY INDEX</p>
+                <div class="row">
+                    <div class="stat"><span id="aqi">--</span><label>US AQI</label></div>
+                    <div class="stat"><span id="pm10">--</span><label>PM10</label></div>
+                    <div class="stat"><span id="pm25">--</span><label>PM2.5</label></div>
+                </div>
+            </div>
+
+            <div class="glass-card about-section">
+                <h3>About Skyview</h3>
+                <p>Designed by <strong>Swastik Chatterjee</strong></p>
+                <p>A <strong>Libre</strong> weather experience committed to privacy and user freedom.</p>
+                <p>Licensed under <strong>GNU AGPLv3</strong></p>
+                <p>Supported by the <a href="https://www.fsf.org/" target="_blank" class="about-link">FSF</a> movement.</p>
+                <p style="margin-top: 15px;">
+                    <a href="https://github.com/swastik-gh/skyview" target="_blank" class="about-link" style="display: inline-flex; align-items: center; gap: 5px;">
+                        <i data-lucide="github" size="14"></i> View Source Code
+                    </a>
+                </p>
+            </div>
+
+            <footer>SKYVIEW</footer>
+        </div>
+    </div>
+
+    <script>
+        const CACHE_KEY = 'skyview_app_state';
+        let isCelsius = localStorage.getItem('skyview_unit') !== 'F';
+
+        function getWeatherDesc(code) {
+            const codes = { 0: 'Clear Sky', 1: 'Mainly Clear', 2: 'Partly Cloudy', 3: 'Overcast', 45: 'Foggy', 61: 'Light Rain', 95: 'Thunderstorm' };
+            return codes[code] || 'Cloudy';
+        }
+
+        async function fetchWeather(query = null, force = false) {
+            const content = document.getElementById('content');
+            const loader = document.getElementById('loader');
+            if (!force && localStorage.getItem(CACHE_KEY)) render(JSON.parse(localStorage.getItem(CACHE_KEY)));
+            
+            loader.classList.remove('hidden');
+            content.style.opacity = "0.4";
+
+            try {
+                let lat, lon, name;
+                if (query) {
+                    const g = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=1&format=json`).then(r => r.json());
+                    if (!g.results) throw new Error();
+                    ({ latitude: lat, longitude: lon, name } = g.results[0]);
+                } else {
+                    const p = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej, {timeout: 5000}));
+                    lat = p.coords.latitude; lon = p.coords.longitude;
+                    const rev = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`).then(r => r.json());
+                    name = rev.address.city || rev.address.town || "Local Area";
+                }
+
+                const [w, a] = await Promise.all([
+                    fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,relative_humidity_2m,wind_speed_10m,surface_pressure&timezone=auto`).then(r => r.json()),
+                    fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=us_aqi,pm10,pm2_5&timezone=auto`).then(r => r.json())
+                ]);
+
+                const data = { name, weather: w, aqi: a };
+                localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+                render(data);
+                document.getElementById('cityInput').value = '';
+            } catch (e) {
+                document.getElementById('desc').textContent = "Connection Error";
+            } finally {
+                loader.classList.add('hidden');
+                content.style.opacity = "1";
+                lucide.createIcons();
+            }
+        }
+
+        function render(d) {
+            if (!d) return;
+            document.getElementById('cityName').textContent = d.name.toUpperCase();
+            const tempC = d.weather.current.temperature_2m;
+            const tempVal = isCelsius ? tempC : (tempC * 9/5) + 32;
+            document.getElementById('temp').textContent = Math.round(tempVal) + '°';
+            document.getElementById('unitToggle').textContent = isCelsius ? '°F' : '°C';
+            document.getElementById('desc').textContent = getWeatherDesc(d.weather.current.weather_code);
+            document.getElementById('wind').textContent = Math.round(d.weather.current.wind_speed_10m) + ' km/h';
+            document.getElementById('hum').textContent = d.weather.current.relative_humidity_2m + '%';
+            document.getElementById('pres').textContent = Math.round(d.weather.current.surface_pressure) + ' hPa';
+            const aq = d.aqi.current || {};
+            document.getElementById('aqi').textContent = aq.us_aqi ? Math.round(aq.us_aqi) : '--';
+            document.getElementById('pm10').textContent = aq.pm10 || '--';
+            document.getElementById('pm25').textContent = aq.pm2_5 || '--';
+            lucide.createIcons();
+        }
+
+        document.getElementById('unitToggle').onclick = () => {
+            isCelsius = !isCelsius;
+            localStorage.setItem('skyview_unit', isCelsius ? 'C' : 'F');
+            const data = localStorage.getItem(CACHE_KEY);
+            if (data) render(JSON.parse(data));
+        };
+
+        document.getElementById('refreshBtn').onclick = () => fetchWeather(document.getElementById('cityName').textContent, true);
+        document.getElementById('cityInput').onkeypress = (e) => { if(e.key === 'Enter') { fetchWeather(e.target.value, true); e.target.blur(); } };
+
+        lucide.createIcons();
+        fetchWeather();
+    </script>
+</body>
+</html>
